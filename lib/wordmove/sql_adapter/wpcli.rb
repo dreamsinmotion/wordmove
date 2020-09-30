@@ -8,6 +8,7 @@ module Wordmove
         @from = source_config[config_key]
         @to = dest_config[config_key]
         @local_path = local_path
+        @config_key = config_key
       end
 
       def command
@@ -25,10 +26,29 @@ module Wordmove
           "--allow-root"
         ]
 
-        "wp search-replace #{opts.join(' ')}"
+        optsSlashes = [
+            "--path=#{cli_config_path}",
+            addslashes(from),
+            addslashes(to),
+            "--quiet",
+            "--skip-columns=guid",
+            "--all-tables",
+            "--allow-root"
+          ]
+
+        if @config_key == :vhost
+          "wp search-replace #{opts.join(' ')} && wp search-replace #{optsSlashes.join(' ')}"
+        else
+          "wp search-replace #{opts.join(' ')}"
+        end
+        
       end
 
       private
+
+      def addslashes(str)
+        '"'+str.gsub("/", "\\/")+'"'
+      end
 
       def wp_in_path?
         system('which wp > /dev/null 2>&1')
